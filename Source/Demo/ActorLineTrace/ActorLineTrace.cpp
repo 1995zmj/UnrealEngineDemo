@@ -28,7 +28,6 @@ AActorLineTrace::AActorLineTrace()
 void AActorLineTrace::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame

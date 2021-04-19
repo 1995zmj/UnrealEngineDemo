@@ -11,7 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
-
+#include "SwingDoor/SwingDoor.h"
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,6 +82,17 @@ ADemoCharacter::ADemoCharacter()
 
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
+
+	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Trigger Capsule"));
+	TriggerCapsule->InitCapsuleSize(55.f, 96.0f);;
+	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
+	TriggerCapsule->SetupAttachment(RootComponent);
+
+	// bind trigger events
+	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &ADemoCharacter::OnOverlapBegin);
+	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &ADemoCharacter::OnOverlapEnd);
+
+	CurrentDoor = NULL;
 }
 
 void ADemoCharacter::BeginPlay()
@@ -136,6 +147,8 @@ void ADemoCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAxis("TurnRate", this, &ADemoCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ADemoCharacter::LookUpAtRate);
+
+	PlayerInputComponent->BindAction("Grow", IE_Pressed, this, &ADemoCharacter::OnAction);
 }
 
 void ADemoCharacter::OnFire()
@@ -297,4 +310,32 @@ bool ADemoCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInpu
 	}
 	
 	return false;
+}
+
+void ADemoCharacter::OnAction()
+{
+	FVector ForwardVector = FirstPersonCameraComponent->GetForwardVector();
+
+	if (CurrentDoor)
+	{
+		CurrentDoor->ToggleDoor(ForwardVector);
+	}
+}
+
+// overlap on begin function
+void ADemoCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && (OtherActor != this) && OtherComp && OtherActor->GetClass()->IsChildOf(ASwingDoor::StaticClass()))
+	{
+		CurrentDoor = Cast<ASwingDoor>(OtherActor);
+	}
+}
+
+// overlap on end function
+void ADemoCharacter::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && (OtherActor != this) && OtherComp)
+	{
+		CurrentDoor = NULL;
+	}
 }
