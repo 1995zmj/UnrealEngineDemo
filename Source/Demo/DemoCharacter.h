@@ -48,6 +48,9 @@ class ADemoCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, Category = "Trigger Capsule")
 	class UCapsuleComponent* TriggerCapsule;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UCameraShake> MyShake;
+
 public:
 	ADemoCharacter();
 

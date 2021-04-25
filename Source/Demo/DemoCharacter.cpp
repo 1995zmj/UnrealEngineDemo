@@ -192,9 +192,10 @@ void ADemoCharacter::OnFire()
 	{
 		// Get the animation object for the arms mesh
 		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-		if (AnimInstance != NULL)
+		if (AnimInstance != NULL && MyShake != NULL)
 		{
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
+			GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(MyShake, 1.0f);
 		}
 	}
 }
