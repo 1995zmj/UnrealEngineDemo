@@ -32,7 +32,7 @@ public:
 	class UStaticMeshComponent* DoorFrame;
 
 	UPROPERTY(EditAnywhere)
-	class UCurveFloat *DoorCurve;
+	UCurveFloat* DoorCurve;
 
 	UFUNCTION()
 	void ControlDoor();
@@ -47,7 +47,7 @@ public:
 	bool ReadyState;
 	float RotateValue;
 	float CurveFloatValue;
-	float TimeLineValue;
+	float TimelineValue;
 	FRotator DoorRotation;
 	FTimeline MyTimeline;
 };

@@ -1,6 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "OpenDoorTimelineCurve.h"
+
+#include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/TimelineComponent.h"
@@ -17,7 +20,7 @@ AOpenDoorTimelineCurve::AOpenDoorTimelineCurve()
 	DoorFrame = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorFrame"));
 	RootComponent = DoorFrame;
 
-	Door = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MyMesh"));
+	Door = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("My Mesh"));
 	Door->SetupAttachment(RootComponent);
 }
 
@@ -25,7 +28,7 @@ AOpenDoorTimelineCurve::AOpenDoorTimelineCurve()
 void AOpenDoorTimelineCurve::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	RotateValue = 1.0f;
 
 	if (DoorCurve)
@@ -34,9 +37,14 @@ void AOpenDoorTimelineCurve::BeginPlay()
 		FOnTimelineEventStatic TimelineFinishedCallback;
 
 		TimelineCallback.BindUFunction(this, FName("ControlDoor"));
-		TimelineFinishedCallback.BindUFunction(this, FName(TEXT("SetState")));
+		TimelineFinishedCallback.BindUFunction(this, FName{ TEXT("SetState") });
 		MyTimeline.AddInterpFloat(DoorCurve, TimelineCallback);
 		MyTimeline.SetTimelineFinishedFunc(TimelineFinishedCallback);
+
+		FVector2D ViewportSize = UWidgetLayoutLibrary::GetViewportSize(this);
+		float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(this);
+		ViewportSize.X = ViewportSize.X / ViewportScale;
+		ViewportSize.Y = ViewportSize.Y / ViewportScale;
 	}
 }
 
@@ -50,10 +58,10 @@ void AOpenDoorTimelineCurve::Tick(float DeltaTime)
 
 void AOpenDoorTimelineCurve::ControlDoor()
 {
-	TimeLineValue = MyTimeline.GetPlaybackPosition();
-	CurveFloatValue = RotateValue * DoorCurve->GetFloatValue(TimeLineValue);
+	TimelineValue = MyTimeline.GetPlaybackPosition();
+	CurveFloatValue = RotateValue*DoorCurve->GetFloatValue(TimelineValue);
 
-	FQuat NewRotation = FQuat(FRotator(0.0f, CurveFloatValue, 0.0f));
+	FQuat NewRotation = FQuat(FRotator(0.f, CurveFloatValue, 0.f));
 
 	Door->SetRelativeRotation(NewRotation);
 }
@@ -63,21 +71,25 @@ void AOpenDoorTimelineCurve::SetState()
 	ReadyState = true;
 }
 
-void AOpenDoorTimelineCurve::ToggleDoor()
+void AOpenDoorTimelineCurve::ToggleDoor() 
 {
-	if (ReadyState)
+	if(ReadyState) 
 	{
 		Open = !Open;
-		DoorRotation = Door->GetRelativeRotation();
 
+		// alternative way to get pawn position
+		// GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation()
 		APawn* OurPawn = UGameplayStatics::GetPlayerPawn(this, 0);
 		FVector PawnLocation = OurPawn->GetActorLocation();
 		FVector Direction = GetActorLocation() - PawnLocation;
 		Direction = UKismetMathLibrary::LessLess_VectorRotator(Direction, GetActorRotation());
 
-		if (Open)
+		DoorRotation = Door->GetRelativeRotation();
+
+		if(Open)
 		{
-			if (Direction.X > 0.0f)
+                
+			if(Direction.X > 0.0f)
 			{
 				RotateValue = 1.0f;
 			}
@@ -89,11 +101,11 @@ void AOpenDoorTimelineCurve::ToggleDoor()
 			ReadyState = false;
 			MyTimeline.PlayFromStart();
 		}
-		else
+		else 
 		{
 			ReadyState = false;
 			MyTimeline.Reverse();
 		}
 	}
-}
 
+}

@@ -2,6 +2,7 @@
 
 #include "DemoCharacter.h"
 #include "DemoProjectile.h"
+#include "DrawDebugHelpers.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -11,6 +12,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
+#include "Blueprint/UserWidget.h"
+#include "OpenDoorTimelineCurve/OpenDoorTimelineCurve.h"
 #include "SwingDoor/SwingDoor.h"
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -88,10 +91,6 @@ ADemoCharacter::ADemoCharacter()
 	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
 	TriggerCapsule->SetupAttachment(RootComponent);
 
-	// bind trigger events
-	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &ADemoCharacter::OnOverlapBegin);
-	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &ADemoCharacter::OnOverlapEnd);
-
 	CurrentDoor = NULL;
 }
 
@@ -99,6 +98,8 @@ void ADemoCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	PrimaryActorTick.bCanEverTick = true;
 
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
 	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
@@ -114,6 +115,49 @@ void ADemoCharacter::BeginPlay()
 		VR_Gun->SetHiddenInGame(true, true);
 		Mesh1P->SetHiddenInGame(false, true);
 	}
+
+	if (HelpWidgetClass)
+	{
+		InfoWidget = CreateWidget<UUserWidget>(GetWorld(), HelpWidgetClass);
+ 
+		if (InfoWidget)
+		{
+			InfoWidget->AddToViewport();
+		}
+ 
+	}	
+}
+
+void ADemoCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// FHitResult Hit;
+	//
+	// FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+	//
+	// FVector ForwardVector = FirstPersonCameraComponent->GetForwardVector();
+	//
+	// FVector End = ((ForwardVector * 200.f) + Start);
+	//
+	// FCollisionQueryParams CollisionParams;
+	//
+	// DrawDebugLine(GetWorld(), Start,End,FColor::Green, false,1,0,1);
+	// if(GetWorld()->LineTraceSingleByChannel(Hit,Start,End,ECC_Visibility,CollisionParams))
+	// {
+	// 	if(Hit.bBlockingHit)
+	// 	{
+	// 		if (Hit.GetActor()->GetClass()->IsChildOf(AOpenDoorTimelineCurve::StaticClass()))
+	// 		{
+	// 			UE_LOG(LogTemp,Warning,TEXT("door"));
+	// 			CurrentDoor = Cast<AOpenDoorTimelineCurve>(Hit.GetActor());
+	// 		}
+	// 	}
+	// }
+	// else
+	// {
+	// 	CurrentDoor = NULL;
+	// }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -319,24 +363,7 @@ void ADemoCharacter::OnAction()
 
 	if (CurrentDoor)
 	{
-		CurrentDoor->ToggleDoor(ForwardVector);
-	}
-}
-
-// overlap on begin function
-void ADemoCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor && (OtherActor != this) && OtherComp && OtherActor->GetClass()->IsChildOf(ASwingDoor::StaticClass()))
-	{
-		CurrentDoor = Cast<ASwingDoor>(OtherActor);
-	}
-}
-
-// overlap on end function
-void ADemoCharacter::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor && (OtherActor != this) && OtherComp)
-	{
-		CurrentDoor = NULL;
+		UE_LOG(LogTemp,Warning,TEXT("toggle"));
+		CurrentDoor->ToggleDoor();
 	}
 }

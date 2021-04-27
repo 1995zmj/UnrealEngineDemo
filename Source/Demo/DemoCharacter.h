@@ -57,6 +57,8 @@ public:
 protected:
 	virtual void BeginPlay();
 
+	// add tick override
+	virtual void Tick(float DeltaSeconds) override;
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -144,17 +146,15 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	UPROPERTY(EditAnywhere)
+	class AOpenDoorTimelineCurve* CurrentDoor;
 
-	// declare overlap begin function
-	UFUNCTION()
-	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	// Reference UMG Asset in the Editor
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UUserWidget> HelpWidgetClass;
 
-	// declare overlap end function
-	UFUNCTION()
-	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	class ASwingDoor* CurrentDoor;
-
+	// declare widget
+	class UUserWidget* InfoWidget;
 	void OnAction();
 };
 
