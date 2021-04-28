@@ -23,6 +23,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void LoadCSV(FString path);
-
+	FString LoadCSV(FString path);
+	void SaveCSV(FString FileName,FString SaveStr);
 };
