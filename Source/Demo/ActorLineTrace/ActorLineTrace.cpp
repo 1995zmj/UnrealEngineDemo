@@ -22,6 +22,9 @@ AActorLineTrace::AActorLineTrace()
 		Cube->SetWorldScale3D(FVector(1.0f));
 	}
 
+	TotalDamage = 200;
+	DamageTimeInSeconds = 1.0f;
+
 }
 
 // Called when the game starts or when spawned
@@ -53,3 +56,28 @@ void AActorLineTrace::Tick(float DeltaTime)
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, FString::Printf(TEXT("The Component Being Hit is: %s"), *OutHit.GetComponent()->GetName()));
 	}
 }
+
+void AActorLineTrace::PostInitProperties()
+{
+	Super::PostInitProperties();
+	//DamagePerSecond = TotalDamage / DamageTimeInSeconds;
+}
+
+void AActorLineTrace::CalculateValues()
+{
+	DamagePerSecond = TotalDamage / DamageTimeInSeconds;
+}
+
+void AActorLineTrace::CalledFromCpp_Implementation()
+{
+	// Do something cool here
+}
+
+#ifdef WITH_EDITOR
+void AActorLineTrace::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	//CalculateValues();
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif
